@@ -1,6 +1,6 @@
 {
   "name": "json-kiln",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "Streaming JSON array generator by target size (bytes). Exact-size files, per-item min size, deterministic, EJSON. No OOM.",
   "type": "module",
   "license": "MIT",

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect } from 'vitest';
 import { spawnSync, SpawnSyncReturns } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -15,7 +16,6 @@ function tsxBinPath(): string {
 
 const kb = (n: number) => n * 1024;
 const mb = (n: number) => n * 1024 ** 2;
-const gb = (n: number) => n * 1024 ** 3;
 
 function runCli(args: string[], input?: string): SpawnSyncReturns<string> {
   const bin = tsxBinPath();
@@ -45,7 +45,7 @@ function normalizeDynamicIds(s: string): string {
   // Mask timestamp prefix in cfg_* ids
   s = s.replace(/("id":"cfg_\d+_)([0-9a-f]{8})([0-9a-f]{16})/g, '$1XXXXXXXX$3');
   // Mask timestamp prefix in EJSON $oid
-  s = s.replace(/(\"\$oid\":\"|"\$oid":")([0-9a-f]{8})([0-9a-f]{16})(\")/g, '$1XXXXXXXX$3$4');
+  s = s.replace(/("\$oid":"|"\$oid":")([0-9a-f]{8})([0-9a-f]{16})(")/g, '$1XXXXXXXX$3$4');
   return s;
 }
 
