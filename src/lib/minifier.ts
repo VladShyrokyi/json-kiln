@@ -13,7 +13,7 @@ export class MinifierByDataUpdate implements Minifier {
     private readonly fieldName = '___pad',
   ) {}
 
-  fitToSize(value: JsonObject, size: number, targetSize: number) {
+  fitToSize(value: JsonObject, size: number, targetSize: number): JsonObject {
     if (size === targetSize) {
       return value;
     }

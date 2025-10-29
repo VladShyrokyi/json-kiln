@@ -19,6 +19,10 @@ export function pickRandom<T>(rng: RNGFunc, arr: T[]): T {
   return arr[rndInt(rng, 0, arr.length - 1)];
 }
 
+/**
+ * @internal
+ * @param rng
+ */
 export function randomWord(rng: RNGFunc) {
   const syll = ['la', 'zo', 'mi', 'tra', 'vel', 'qu', 'ra', 'ne', 'do', 'xi', 'ka', 'mon', 'ar', 'ben', 'tu'];
   const n = rndInt(rng, 2, 4);
@@ -29,6 +33,11 @@ export function randomWord(rng: RNGFunc) {
   return s;
 }
 
+/**
+ * @internal
+ * @param rng
+ * @param maxLen
+ */
 export function randomText(rng: RNGFunc, maxLen = 60) {
   const words: string[] = [];
   let len = 0;
@@ -40,6 +49,10 @@ export function randomText(rng: RNGFunc, maxLen = 60) {
   return words.join(' ').slice(0, maxLen).trim();
 }
 
+/**
+ * @internal
+ * @param seed
+ */
 export function getRandom(seed?: number) {
   return mulberry32(clampInt(seed ?? Date.now() % 100_000, 0, Number.MAX_SAFE_INTEGER));
 }

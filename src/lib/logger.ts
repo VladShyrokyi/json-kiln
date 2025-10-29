@@ -1,5 +1,8 @@
 import { stringifySize } from './utils';
 
+/**
+ * @internal
+ */
 export class Logger {
   private startTs: number = 0;
 
