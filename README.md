@@ -274,13 +274,3 @@ Please follow the code style and add tests for public changes.
 ## License
 
 MIT © You. See [LICENSE](./LICENSE).
-
----
-
-### Badges (optional)
-
-Add these once you publish:
-
-- npm: `json-kiln`
-- Docker Hub: `shyrokyivladislav/json-kiln`
-- CI: GitHub Actions badge
