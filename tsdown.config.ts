@@ -1,7 +1,6 @@
-import { defineConfig } from 'tsdown';
+import { defineConfig, UserConfig } from 'tsdown';
 
-// Конфіг максимально близький до попереднього tsup: ESM-тільки, CLI банер, декларації.
-export default defineConfig({
+const config: UserConfig = defineConfig({
   entry: {
     index: 'src/index.ts',
     cli: 'src/cli.ts',
@@ -16,3 +15,5 @@ export default defineConfig({
     js: '#!/usr/bin/env node',
   },
 });
+
+export default config;
