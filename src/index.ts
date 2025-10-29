@@ -1,3 +1,13 @@
+export interface Logger {
+  start(): void;
+  progress(size: number, items: number): void;
+  end(isSuccess: boolean): void;
+
+  log(msg: string): void;
+  warn(msg: string): void;
+  error(msg: string): void;
+}
+
 export interface GenerateOptions {
   size: number;
   depth?: number;
@@ -7,7 +17,7 @@ export interface GenerateOptions {
   oid?: boolean;
   seed?: number;
   pretty?: boolean;
-  progress?: boolean;
+  logger?: Logger;
 
   encoding?: BufferEncoding;
 }

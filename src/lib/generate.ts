@@ -1,6 +1,5 @@
 import { clampInt } from './utils';
 import { getRandom } from './seed';
-import { Logger } from './logger';
 import { GenerateOptions } from '../index';
 import { JsonArrayBuilder } from './json-array.builder';
 import { JsonSerializer } from './json.serializer';
@@ -19,25 +18,24 @@ export async function generateStream(out: NodeJS.WritableStream, opts: GenerateO
   const pretty = Boolean(opts.pretty);
   const exact = Boolean(opts.exact);
   const useOid = Boolean(opts.oid);
-  const progress = Boolean(opts.progress);
   const encoding = opts.encoding ?? 'utf-8';
 
   if (!Number.isFinite(sizeTarget) || sizeTarget < 3) {
     throw new Error('Bad size: must be >= 3 bytes, but got ' + sizeTarget);
   }
 
+  const logger = opts.logger;
   const generator = new ConfigJsonGenerator(depth, useOid, getRandom(opts.seed));
-  const logger = new Logger(progress, !!process.stderr.isTTY, sizeTarget);
   const writer = new WriterToStream(out, encoding);
   const serializer = new JsonSerializer(pretty);
   const tokenizer = new JsonArrayTokenizer(pretty);
   const builder = new JsonArrayBuilder(writer, tokenizer);
   const planner = new JsonPlanner(sizeTarget, minItemSize, tokenizer, writer);
-  const minifier = new MinifierByDataUpdate(writer);
+  const minifier = new MinifierByDataUpdate(writer, serializer);
 
   const facade = new JsonFacade(writer, serializer);
 
-  logger.start();
+  logger?.start();
   await builder.open();
 
   while (true) {
@@ -86,16 +84,16 @@ export async function generateStream(out: NodeJS.WritableStream, opts: GenerateO
     const sizeActual = planner.getTotalSize(builder.size);
     if (sizeActual >= sizeTarget) {
       if (sizeActual > sizeTarget) {
-        logger.warn(`Generated size ${sizeActual} bytes exceeds target size ${sizeTarget} bytes.`);
+        logger?.warn(`Generated size ${sizeActual} bytes exceeds target size ${sizeTarget} bytes.`);
       }
       break;
     }
 
     if (builder.count % 25 === 0) {
-      logger.progress(builder.size, builder.count);
+      logger?.progress(builder.size, builder.count);
     }
   }
 
   await builder.close();
-  logger.end(builder.size, builder.count);
+  logger?.end(true);
 }

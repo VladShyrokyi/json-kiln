@@ -1,10 +1,15 @@
+import * as rl from 'node:readline';
 import { stringifySize } from './utils';
+import { Logger } from '../index';
 
 /**
  * @internal
  */
-export class Logger {
+export class ReadLineLogger implements Logger {
   private startTs: number = 0;
+  private lastSize: number = 0;
+  private lastItems: number = 0;
+  private hasEnded = false;
 
   constructor(
     private readonly isEnabledProgress: boolean,
@@ -14,30 +19,70 @@ export class Logger {
 
   start() {
     this.startTs = Date.now();
+    this.log('Starting...');
     this.progress(0, 0);
   }
 
-  end(size: number, items: number) {
-    this.progress(size, items);
-    this.clearLine();
+  end(isSuccess: boolean = true) {
+    if (this.hasEnded) {
+      return;
+    }
+    this.hasEnded = true;
+
+    this.progress(this.lastSize, this.lastItems);
+    if (this.isInteractive) {
+      this.newLine();
+    }
+    if (!isSuccess) {
+      return;
+    }
+    const elapsed = Date.now() - this.startTs;
+    this.log(`Done! ${stringifySize(this.lastSize)} written by ${this.formatTime(elapsed)}.`);
   }
 
   progress(size: number, items: number) {
     if (!this.isEnabledProgress) {
       return;
     }
+    this.lastSize = size;
+    this.lastItems = items;
     const line = this.render(size, items);
     this.print(line);
   }
 
-  log(message: string) {
-    this.clearLine();
-    this.print(message);
+  log(msg: string) {
+    this.print(msg, true);
   }
 
-  warn(message: string) {
-    this.clearLine();
-    process.stderr.write(`WARNING: ${message}\n`);
+  warn(msg: string) {
+    this.print(`WARNING: ${msg}`, true);
+  }
+
+  error(msg: string) {
+    this.print(`ERROR: ${msg}`, true);
+  }
+
+  private print(line: string, isNewLine = false) {
+    if (this.isInteractive) {
+      rl.clearLine(process.stderr, 0);
+      rl.cursorTo(process.stderr, 0);
+      process.stderr.write(isNewLine ? line + '\n' : line);
+    } else {
+      process.stderr.write(line + '\n');
+    }
+  }
+
+  private newLine() {
+    if (this.isInteractive) {
+      process.stderr.write('\n');
+    }
+  }
+
+  private clearLine() {
+    if (this.isInteractive) {
+      rl.clearLine(process.stderr, 0);
+      rl.cursorTo(process.stderr, 0);
+    }
   }
 
   private render(size: number, items: number): string {
@@ -58,24 +103,36 @@ export class Logger {
     const bar = `[${'#'.repeat(barWidthFilled)}${'.'.repeat(barWidth - barWidthFilled)}]`;
 
     const percentFormatted = `${percent.toFixed(1)}%`;
-    const sizeByTotalFormatted = `${stringifySize(size)} / ${stringifySize(total)}`;
+    const totalFormatted = stringifySize(total);
+    const sizeByTotalFormatted = `${stringifySize(size).padStart(totalFormatted.length, ' ')} / ${totalFormatted}`;
     const speedFormatted = `${stringifySize(speed)}/s`;
     const etaFormatted = eta === Infinity ? '∞' : `${Math.ceil(eta)}s`;
 
     return `${bar} ${percentFormatted}  ${sizeByTotalFormatted}  items:${items}  speed:${speedFormatted}  ETA:${etaFormatted}`;
   }
 
-  private print(line: string) {
-    if (this.isInteractive) {
-      process.stderr.write('\r' + line + '   ' + '\n');
-    } else {
-      process.stderr.write(line + '\n');
-    }
-  }
+  private formatTime(time: number): string {
+    let remainingSeconds = Math.max(1, time / 1000);
 
-  private clearLine() {
-    if (this.isInteractive) {
-      process.stderr.write('\r' + ' '.repeat(80) + '\r');
+    const days = Math.floor(remainingSeconds / 86400);
+    remainingSeconds -= days * 86400;
+    const hours = Math.floor(remainingSeconds / 3600);
+    remainingSeconds -= hours * 3600;
+    const minutes = Math.floor(remainingSeconds / 60);
+    remainingSeconds -= minutes * 60;
+    const seconds = Math.floor(remainingSeconds);
+    let formattedTime = '';
+    if (days > 0) {
+      formattedTime += `${days}d`;
     }
+    if (hours > 0) {
+      formattedTime += `${hours}h`;
+    }
+    if (minutes > 0) {
+      formattedTime += `${minutes}m`;
+    }
+    formattedTime += `${seconds}s`;
+
+    return formattedTime;
   }
 }

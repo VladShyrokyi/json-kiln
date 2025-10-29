@@ -1,6 +1,7 @@
 import { generateStream } from './lib/generate';
 import * as fs from 'node:fs';
 import { parseSize } from './lib/utils';
+import { ReadLineLogger } from './lib/logger';
 
 function parseArgs(argv: string[]) {
   const out: Record<string, string | number | boolean> = {};
@@ -26,6 +27,11 @@ function parseArgs(argv: string[]) {
       const key = stack.pop()!;
       out[key] = a ?? true;
     }
+  }
+  // Flush trailing flag without value: `--flag`
+  if (stack.length) {
+    const key = stack.pop()!;
+    out[key] = true;
   }
   return out;
 }
@@ -90,6 +96,8 @@ async function main() {
   const outPath = typeof argv.out === 'string' ? argv.out : undefined;
   const outStream = outPath ? fs.createWriteStream(outPath, { encoding }) : process.stdout;
 
+  const logger = new ReadLineLogger(Boolean(argv.progress), !!process.stderr.isTTY, size);
+
   await generateStream(outStream, {
     size,
     depth,
@@ -99,7 +107,7 @@ async function main() {
     oid: Boolean(argv.oid),
     seed: argv.seed !== undefined ? Number(argv.seed) : undefined,
     pretty: Boolean(argv.pretty),
-    progress: Boolean(argv.progress),
+    logger,
     encoding,
   });
 
