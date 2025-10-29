@@ -72,6 +72,12 @@ export async function generateStream(out: NodeJS.WritableStream, opts: GenerateO
       if (itemSizeTarget >= 2) {
         const item = minifier.fitToSize(entity.body, entity.size, itemSizeTarget);
         entity = facade.createEntity(item);
+        // If we still cannot fit (e.g., no pad available to shrink a large base),
+        // fall back to emitting a minimal filler object sized precisely to the remaining budget.
+        if (entity.size > itemSizeTarget) {
+          const item = minifier.fitToSize({}, writer.count(serializer.serialize({})), itemSizeTarget);
+          entity = facade.createEntity(item);
+        }
       }
     }
 
