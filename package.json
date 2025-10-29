@@ -29,6 +29,17 @@
     "typescript",
     "docker"
   ],
+  "scripts": {
+    "dev": "tsx src/cli.ts --help",
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm run test"
+  },
   "engines": {
     "node": ">=20",
     "npm": ">=10"
@@ -50,17 +61,6 @@
     "README.md",
     "LICENSE"
   ],
-  "scripts": {
-    "dev": "tsx src/cli.ts --help",
-    "build": "tsdown",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix",
-    "format": "prettier --check .",
-    "format:fix": "prettier --write .",
-    "test": "vitest run",
-    "prepublishOnly": "npm run build && npm run test"
-  },
   "devDependencies": {
     "@types/node": "^20.19.23",
     "eslint": "^9.38.0",
