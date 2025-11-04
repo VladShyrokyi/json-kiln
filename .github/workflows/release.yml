@@ -1,4 +1,4 @@
-name: Release
+name: Release on tag
 
 on:
   push:
@@ -34,8 +34,14 @@ jobs:
       - name: Test
         run: npm run test
 
-      - name: Build (tsdown)
+      - name: Build
         run: npm run build
+
+      - name: Verify version matches tag
+        run: |
+          PKG_VER=$(node -p "require('./package.json').version")
+          TAG_VER="${GITHUB_REF#refs/tags/v}"
+          [ "$PKG_VER" = "$TAG_VER" ] || { echo "package.json version ($PKG_VER) != tag ($TAG_VER)"; exit 1; }
 
       - name: Publish
         env:
@@ -48,9 +54,8 @@ jobs:
     needs:
       - npm-publish
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Create GitHub Release
+      - name: Publish GitHub release (turn draft into release)
         uses: softprops/action-gh-release@v2
         with:
+          draft: false
           generate_release_notes: true

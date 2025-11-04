@@ -1,0 +1,80 @@
+name: Tag on version bump
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tag-on-version
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version from package.json
+        id: v
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Validate semver
+        run: |
+          echo "${{ steps.v.outputs.version }}" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z\.-]+)?$' >/dev/null || {
+            echo "package.json version is not semver"; exit 1;
+          }
+
+      - name: Ensure package-lock.json matches version
+        run: |
+          PKG_VER="${{ steps.v.outputs.version }}"
+          if [ ! -f package-lock.json ]; then
+            echo "No package-lock.json, skipping lock sync."; exit 0; fi
+          LOCK_VER=$(node -e "try{console.log(require('./package-lock.json').version||'')}catch(e){process.exit(0)}")
+          if [ -z "$LOCK_VER" ] || [ "$LOCK_VER" != "$PKG_VER" ]; then
+            npm install --package-lock-only --ignore-scripts
+          fi
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "chore(lockfile): sync package-lock to v${PKG_VER}"
+            git push
+          fi
+
+      - name: Skip if tag already exists
+        id: exists
+        run: |
+          TAG="${{ steps.v.outputs.tag }}"
+          if git ls-remote --tags origin | grep -q "refs/tags/${TAG}$"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create and push tag
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          TAG="${{ steps.v.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin "${TAG}"
+
+      - name: Create GitHub draft release
+        if: steps.exists.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.v.outputs.tag }}
+          draft: true
