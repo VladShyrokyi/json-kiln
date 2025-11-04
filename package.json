@@ -16,6 +16,8 @@
   "keywords": [
     "json",
     "generator",
+    "data-generator",
+    "stream",
     "streaming",
     "big-data",
     "large-files",
@@ -27,7 +29,8 @@
     "cli",
     "nodejs",
     "typescript",
-    "docker"
+    "docker",
+    "seed"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts --help",
