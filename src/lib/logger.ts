@@ -41,11 +41,11 @@ export class ReadLineLogger implements Logger {
   }
 
   progress(size: number, items: number) {
+    this.lastSize = size;
+    this.lastItems = items;
     if (!this.isEnabledProgress) {
       return;
     }
-    this.lastSize = size;
-    this.lastItems = items;
     const line = this.render(size, items);
     this.print(line);
   }
