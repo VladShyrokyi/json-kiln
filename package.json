@@ -32,6 +32,9 @@
     "docker",
     "seed"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "tsx src/cli.ts --help",
     "build": "tsdown",
@@ -76,8 +79,5 @@
     "tsdown": "^0.15.10",
     "tsx": "^4.20.6",
     "vitest": "^4.0.3"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
