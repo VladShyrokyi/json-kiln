@@ -2,7 +2,8 @@ name: Release - Docker only
 
 on:
   release:
-    types: [published]
+    types:
+      - published
   workflow_dispatch:
     inputs:
       tag:

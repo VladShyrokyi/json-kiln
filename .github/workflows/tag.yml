@@ -2,7 +2,8 @@ name: Tag on version bump
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - master
     paths:
       - "package.json"
       - "package-lock.json"
